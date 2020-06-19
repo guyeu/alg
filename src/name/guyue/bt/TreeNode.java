@@ -14,10 +14,10 @@ public class TreeNode {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", TreeNode.class.getSimpleName() + "[", "]")
-            .add("val=" + val)
-            .add("left=" + left)
-            .add("right=" + right)
-            .toString();
+        return "{\"TreeNode\":{"
+            + "\"val\":\"" + val + "\""
+            + ", \"left\":" + left
+            + ", \"right\":" + right
+            + "}}";
     }
 }
