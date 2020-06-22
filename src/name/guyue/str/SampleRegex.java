@@ -1,8 +1,6 @@
 package name.guyue.str;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * @author hujia
@@ -16,113 +14,24 @@ public class SampleRegex {
 
     // LeetCode 10
     public boolean isMatch(String s, String p) {
-        if (s == null || s.isEmpty()) {
-            return p == null || p.isEmpty();
-        } else {
-            if (p == null || p.isEmpty()) return false;
-
-            int index = 0;
-            for (IPattern pattern : new Patterns(p)) {
-                if (index >= s.length() || (index = pattern.match(index, s)) < 0) {
-                    return false;
+        boolean[][] dp = new boolean[s.length() + 1][p.length() + 1];
+        dp[0][0] = true;
+        for (int i = 1; i < dp.length; i++) {
+            dp[i][0] = false;
+        }
+        for (int i = 1; i < dp[0].length; i++) {
+            dp[0][i] = i > 1 && '*' == p.charAt(i-1) && dp[0][i-2];
+        }
+        for (int i = 1; i < dp.length; i++) {
+            for (int j = 1; j < dp[0].length; j++) {
+                if (p.charAt(j-1) == '*') {
+                    dp[i][j] = dp[i][j-2] || (s.charAt(i-1) == p.charAt(j-2) || p.charAt(j-2) == '.') && dp[i-1][j];
+                } else {
+                    dp[i][j] = (p.charAt(j-1) == '.' || s.charAt(i-1) == p.charAt(j-1)) && dp[i-1][j-1];
                 }
             }
-            return index >= s.length();
         }
-    }
-
-    private static class Patterns implements Iterable<IPattern> {
-
-        private final String p;
-
-        private Patterns(String p) {
-            this.p = p;
-        }
-
-        @Override
-        public Iterator<IPattern> iterator() {
-            int[] index = new int[] {0};
-            return new Iterator<>() {
-
-                @Override
-                public boolean hasNext() {
-                    return index[0] < p.length();
-                }
-
-                @Override
-                public IPattern next() {
-                    if (!hasNext()) {
-                        throw new NoSuchElementException();
-                    }
-
-                    char c = p.charAt(index[0]);
-                    index[0] = index[0] + 1;
-                    if (index[0] < p.length() && p.charAt(index[0]) == '*') {
-                        while (index[0] < p.length() && (p.charAt(index[0]) == c || p.charAt(index[0]) == '*')) index[0] = index[0] + 1;
-                        return new Sentence(c);
-                    } else {
-                        return new Letter(c);
-                    }
-                }
-            };
-        }
-    }
-
-    private static class Sentence implements IPattern {
-
-        private final char letter;
-
-        private Sentence(char letter) {
-            this.letter = letter;
-        }
-
-        @Override
-        public int match(int index, String s) {
-            if (letter == '.') {
-                return s.length();
-            } else {
-                while (index < s.length() && letter == s.charAt(index)) index++;
-                return index;
-            }
-        }
-
-        @Override
-        public String toString() {
-            return "[" + letter + "*]";
-        }
-    }
-
-    private static class Letter implements IPattern {
-
-        private final char letter;
-
-        private Letter(char letter) {
-            this.letter = letter;
-        }
-
-        @Override
-        public int match(int index, String s) {
-            if (letter == '.' || letter == s.charAt(index)) {
-                return index + 1;
-            } else {
-                return -1;
-            }
-        }
-
-        @Override
-        public String toString() {
-            return "[" + letter + "]";
-        }
-    }
-
-    private interface IPattern {
-
-        /**
-         * @param index 开始索引
-         * @param s 字符串
-         * @return 一个索引值，如果大于0.代表从开始索引到该索引值的字符串可以匹配该表达式；否则，无法匹配。
-         */
-        int match(int index, String s);
+        return dp[s.length()][p.length()];
     }
 
     public static void main(String[] args) {
